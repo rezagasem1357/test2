@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:convert';
 
 void main() {
@@ -28,7 +28,7 @@ class DeliveryApp extends StatelessWidget {
           elevation: 0,
           centerTitle: true,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -58,15 +58,16 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   List<Map<String, dynamic>> _manifestSearchResults = [];
   List<DeliveryManifest> _savedManifests = [];
   List<String> _smartLogs = [];
-  
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
-  final TextEditingController _purchasePriceController = TextEditingController();
+  final TextEditingController _purchasePriceController =
+      TextEditingController();
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _barcodeController = TextEditingController();
   final TextEditingController _packageSizeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  
+
   bool _isSearching = false;
   String _selectedUnit = 'عددی';
   bool _isLoading = false;
@@ -93,15 +94,15 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== توابع کمکی ====================
-  
+
   String _formatNumber(String value) {
     if (value.isEmpty) return '';
     final number = int.tryParse(value.replaceAll(',', ''));
     if (number == null) return value;
     return number.toString().replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]},',
-    );
+          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+          (match) => '${match[1]},',
+        );
   }
 
   String _formatPrice(int price) {
@@ -124,31 +125,28 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== اسکن بارکد با دوربین ====================
-  
+
   Future<void> _scanBarcode() async {
-    try {
-      String barcode = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', // رنگ خط اسکن
-        'انصراف', // متن دکمه انصراف
-        true, // فعال بودن فلش
-        ScanMode.BARCODE, // حالت اسکن
-      );
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BarcodeScannerScreen(),
+      ),
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      if (barcode != '-1') {
-        setState(() {
-          _barcodeController.text = barcode;
-        });
-        _showSuccessMessage('بارکد اسکن شد ✅');
-      }
-    } catch (e) {
-      _showSuccessMessage('خطا در اسکن بارکد ❌');
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        _barcodeController.text = result;
+      });
+
+      _showSuccessMessage('بارکد اسکن شد ✅');
     }
   }
 
   // ==================== پیام موفقیت در وسط صفحه ====================
-  
+
   void _showSuccessMessage(String message) {
     OverlayEntry overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -160,8 +158,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
             width: 240,
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             decoration: BoxDecoration(
-              color: message.contains('❌') || message.contains('خطا') 
-                  ? Colors.red.shade700 
+              color: message.contains('❌') || message.contains('خطا')
+                  ? Colors.red.shade700
                   : Colors.green.shade700,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
@@ -176,8 +174,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  message.contains('❌') || message.contains('خطا') 
-                      ? Icons.error_outline 
+                  message.contains('❌') || message.contains('خطا')
+                      ? Icons.error_outline
                       : Icons.check_circle,
                   color: Colors.white,
                   size: 40,
@@ -206,11 +204,12 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== گزارش هوشمند ====================
-  
+
   void _addSmartLog(String message) {
     setState(() {
       final timestamp = DateTime.now();
-      final time = '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+      final time =
+          '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
       _smartLogs.insert(0, '[$time] $message');
     });
     _saveSmartLogs();
@@ -240,7 +239,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('پاک کردن گزارش هوشمند'),
-        content: const Text('آیا از پاک کردن همه گزارش‌های هوشمند مطمئن هستید؟'),
+        content:
+            const Text('آیا از پاک کردن همه گزارش‌های هوشمند مطمئن هستید؟'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -267,13 +267,13 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== جستجو ====================
-  
+
   void _searchItems(String query) {
     setState(() {
       _isSearching = query.isNotEmpty;
       _filteredItems.clear();
       _manifestSearchResults.clear();
-      
+
       if (query.isEmpty) {
         _isSearching = false;
         return;
@@ -281,10 +281,11 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
 
       final searchTerm = query.toLowerCase().trim();
 
-      final currentResults = _currentItems.where((item) =>
-        item.name.toLowerCase().contains(searchTerm) ||
-        item.barcode.contains(searchTerm)
-      ).toList();
+      final currentResults = _currentItems
+          .where((item) =>
+              item.name.toLowerCase().contains(searchTerm) ||
+              item.barcode.contains(searchTerm))
+          .toList();
       _filteredItems = currentResults;
 
       for (var manifest in _savedManifests) {
@@ -302,7 +303,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== افزودن کالا ====================
-  
+
   void _clearControllers() {
     _nameController.clear();
     _quantityController.clear();
@@ -325,7 +326,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
           borderRadius: BorderRadius.circular(20),
         ),
         title: Text(
-          targetManifest != null 
+          targetManifest != null
               ? 'افزودن کالا به بارنامه شماره ${targetManifest.number}'
               : 'اضافه کردن کالا',
           textAlign: TextAlign.center,
@@ -356,7 +357,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(Icons.camera_alt, color: Colors.blue, size: 30),
+                      icon: const Icon(Icons.camera_alt,
+                          color: Colors.blue, size: 30),
                       onPressed: _scanBarcode,
                       tooltip: 'اسکن بارکد با دوربین',
                     ),
@@ -395,8 +397,10 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                         ),
                         items: const [
                           DropdownMenuItem(value: 'عددی', child: Text('عددی')),
-                          DropdownMenuItem(value: 'کیلویی', child: Text('کیلویی')),
-                          DropdownMenuItem(value: 'بسته‌ای', child: Text('بسته‌ای')),
+                          DropdownMenuItem(
+                              value: 'کیلویی', child: Text('کیلویی')),
+                          DropdownMenuItem(
+                              value: 'بسته‌ای', child: Text('بسته‌ای')),
                         ],
                         onChanged: (value) {
                           setState(() {
@@ -416,11 +420,14 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                 TextFormField(
                   controller: _quantityController,
                   decoration: InputDecoration(
-                    labelText: 'تعداد (${_selectedUnit == 'بسته‌ای' ? 'بسته' : _selectedUnit})',
+                    labelText:
+                        'تعداد (${_selectedUnit == 'بسته‌ای' ? 'بسته' : _selectedUnit})',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    hintText: _selectedUnit == 'بسته‌ای' ? 'تعداد بسته‌ها' : 'تعداد را وارد کنید',
+                    hintText: _selectedUnit == 'بسته‌ای'
+                        ? 'تعداد بسته‌ها'
+                        : 'تعداد را وارد کنید',
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -443,7 +450,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      hintText: 'مثلاً 10 - در صورت وارد نکردن، فقط بسته ثبت می‌شود',
+                      hintText:
+                          'مثلاً 10 - در صورت وارد نکردن، فقط بسته ثبت می‌شود',
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -452,7 +460,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                 // قیمت خرید
                 TextFormField(
                   controller: _purchasePriceController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'قیمت خرید (ریال)',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -465,7 +473,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                     if (formatted != value) {
                       _purchasePriceController.value = TextEditingValue(
                         text: formatted,
-                        selection: TextSelection.collapsed(offset: formatted.length),
+                        selection:
+                            TextSelection.collapsed(offset: formatted.length),
                       );
                     }
                   },
@@ -504,22 +513,24 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                   quantity: int.parse(_quantityController.text),
                   realQuantity: int.parse(_quantityController.text),
                   purchasePrice: _convertPrice(_purchasePriceController.text),
-                  barcode: _barcodeController.text.isNotEmpty 
-                      ? _barcodeController.text 
+                  barcode: _barcodeController.text.isNotEmpty
+                      ? _barcodeController.text
                       : DateTime.now().millisecondsSinceEpoch.toString(),
                   date: DateTime.now().millisecondsSinceEpoch.toString(),
                   unit: _selectedUnit,
-                  packageSize: _packageSizeController.text.isNotEmpty 
-                      ? int.parse(_packageSizeController.text) 
+                  packageSize: _packageSizeController.text.isNotEmpty
+                      ? int.parse(_packageSizeController.text)
                       : 0,
                 );
-                
+
                 if (targetManifest != null) {
                   setState(() {
                     targetManifest.items.add(newItem);
-                    targetManifest.totalPrice += newItem.purchasePrice * newItem.realQuantity;
+                    targetManifest.totalPrice +=
+                        newItem.purchasePrice * newItem.realQuantity;
                   });
-                  _addSmartLog('➕ کالا "${newItem.name}" به بارنامه شماره ${targetManifest.number} اضافه شد');
+                  _addSmartLog(
+                      '➕ کالا "${newItem.name}" به بارنامه شماره ${targetManifest.number} اضافه شد');
                   _saveManifestChanges(targetManifest);
                   Navigator.pop(context);
                   _showSuccessMessage('کالا اضافه شد ✅');
@@ -530,7 +541,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                       _searchItems(_searchController.text);
                     }
                   });
-                  _addSmartLog('✅ کالا "${_nameController.text}" با تعداد ${newItem.quantity} اضافه شد');
+                  _addSmartLog(
+                      '✅ کالا "${_nameController.text}" با تعداد ${newItem.quantity} اضافه شد');
                   _clearControllers();
                   Navigator.pop(context);
                   _showSuccessMessage('کالا اضافه شد ✅');
@@ -569,11 +581,11 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== ثبت بارنامه ====================
-  
+
   void _submitDelivery() async {
     final TextEditingController dateController = TextEditingController();
     dateController.text = _getTodayDate();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -624,7 +636,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'شماره بارنامه: ${_getNextManifestNumber()}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.blue),
                   ),
                 ],
               ),
@@ -645,10 +658,10 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               ),
             ),
             onPressed: () async {
-              final manifestDate = dateController.text.isEmpty 
-                  ? _getTodayDate() 
+              final manifestDate = dateController.text.isEmpty
+                  ? _getTodayDate()
                   : dateController.text;
-              
+
               final manifest = DeliveryManifest(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 number: _getNextManifestNumber(),
@@ -657,18 +670,19 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                 totalPrice: _totalPurchasePrice,
                 createdAt: DateTime.now().millisecondsSinceEpoch.toString(),
               );
-              
+
               await _saveManifest(manifest);
-              
-              _addSmartLog('📋 بارنامه شماره ${manifest.number} با ${manifest.items.length} کالا ثبت شد');
-              
+
+              _addSmartLog(
+                  '📋 بارنامه شماره ${manifest.number} با ${manifest.items.length} کالا ثبت شد');
+
               setState(() {
                 _currentItems.clear();
                 _filteredItems.clear();
                 _searchController.clear();
                 _isSearching = false;
               });
-              
+
               Navigator.pop(context);
               _showSuccessMessage('بارنامه ثبت شد ✅');
             },
@@ -686,13 +700,13 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== ذخیره و بارگذاری ====================
-  
+
   Future<void> _saveManifest(DeliveryManifest manifest) async {
     final prefs = await SharedPreferences.getInstance();
     final manifestsJson = _savedManifests.map((m) => m.toJson()).toList();
     manifestsJson.add(manifest.toJson());
     await prefs.setString('delivery_manifests', jsonEncode(manifestsJson));
-    
+
     setState(() {
       _savedManifests.add(manifest);
     });
@@ -710,7 +724,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
       try {
         final List<dynamic> decoded = jsonDecode(manifestsJson);
         setState(() {
-          _savedManifests = decoded.map((item) => DeliveryManifest.fromJson(item)).toList();
+          _savedManifests =
+              decoded.map((item) => DeliveryManifest.fromJson(item)).toList();
           _isLoading = false;
         });
       } catch (e) {
@@ -726,10 +741,10 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== ویرایش بارنامه ====================
-  
+
   void _startEditingManifest(DeliveryManifest manifest) {
     final dateController = TextEditingController(text: manifest.date);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -763,7 +778,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                     children: [
                       const Text(
                         'لیست کالاها:',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       IconButton(
                         icon: const Icon(Icons.add_circle, color: Colors.green),
@@ -798,23 +814,28 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                             ),
                           ),
                           title: Text(
-                            item.name, 
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                            item.name,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w500),
                           ),
                           subtitle: Text(
                             'تعداد: ${item.quantity} | ${_displayPrice(item.purchasePrice)}',
                             style: const TextStyle(fontSize: 11),
                           ),
                           trailing: IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
+                            icon: const Icon(Icons.remove_circle_outline,
+                                color: Colors.red, size: 20),
                             onPressed: () {
                               setState(() {
                                 final removedItem = manifest.items[index];
                                 manifest.items.removeAt(index);
-                                manifest.totalPrice -= removedItem.purchasePrice * removedItem.realQuantity;
+                                manifest.totalPrice -=
+                                    removedItem.purchasePrice *
+                                        removedItem.realQuantity;
                               });
                               setStateDialog(() {});
-                              _addSmartLog('❌ کالا "${item.name}" از بارنامه شماره ${manifest.number} حذف شد');
+                              _addSmartLog(
+                                  '❌ کالا "${item.name}" از بارنامه شماره ${manifest.number} حذف شد');
                               _saveManifestChanges(manifest);
                               _showSuccessMessage('کالا حذف شد ❌');
                             },
@@ -846,17 +867,18 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
             onPressed: () async {
               final oldDate = manifest.date;
               final newDate = dateController.text;
-              
+
               setState(() {
                 manifest.date = newDate;
               });
-              
+
               await _saveManifestChanges(manifest);
-              
+
               if (oldDate != newDate) {
-                _addSmartLog('📅 تاریخ بارنامه شماره ${manifest.number} از $oldDate به $newDate تغییر یافت');
+                _addSmartLog(
+                    '📅 تاریخ بارنامه شماره ${manifest.number} از $oldDate به $newDate تغییر یافت');
               }
-              
+
               Navigator.pop(context);
               _showSuccessMessage('تغییرات ذخیره شد ✅');
             },
@@ -899,22 +921,24 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               setState(() {
                 _savedManifests.remove(manifest);
               });
-              
+
               final prefs = await SharedPreferences.getInstance();
-              final manifestsJson = _savedManifests.map((m) => m.toJson()).toList();
-              await prefs.setString('delivery_manifests', jsonEncode(manifestsJson));
-              
+              final manifestsJson =
+                  _savedManifests.map((m) => m.toJson()).toList();
+              await prefs.setString(
+                  'delivery_manifests', jsonEncode(manifestsJson));
+
               _addSmartLog('🗑️ بارنامه شماره ${manifest.number} حذف شد');
-              
+
               Navigator.pop(context);
-              
+
               if (_isViewingManifest && _viewingManifest?.id == manifest.id) {
                 setState(() {
                   _isViewingManifest = false;
                   _viewingManifest = null;
                 });
               }
-              
+
               _showSuccessMessage('بارنامه حذف شد 🗑️');
             },
             child: const Text('حذف'),
@@ -946,7 +970,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
           borderRadius: BorderRadius.circular(20),
         ),
         title: const Text('لغو عملیات'),
-        content: const Text('آیا از لغو این محموله مطمئن هستید؟\nهمه کالاها حذف خواهند شد.'),
+        content: const Text(
+            'آیا از لغو این محموله مطمئن هستید؟\nهمه کالاها حذف خواهند شد.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -979,7 +1004,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   // ==================== ویجت‌های نمایشی ====================
-  
+
   Widget _buildSmartLogs() {
     if (_smartLogs.isEmpty) {
       return Padding(
@@ -998,7 +1023,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
         ),
       );
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1042,9 +1067,11 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                   log,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isSuccess ? Colors.green.shade700 
-                        : isError ? Colors.red.shade700 
-                        : Colors.black87,
+                    color: isSuccess
+                        ? Colors.green.shade700
+                        : isError
+                            ? Colors.red.shade700
+                            : Colors.black87,
                   ),
                 ),
               );
@@ -1057,9 +1084,9 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
 
   Widget _buildSearchResults() {
     if (!_isSearching) return const SizedBox.shrink();
-    
+
     final totalResults = _filteredItems.length + _manifestSearchResults.length;
-    
+
     if (totalResults == 0) {
       return Padding(
         padding: const EdgeInsets.all(40),
@@ -1082,7 +1109,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
         ),
       );
     }
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
@@ -1099,7 +1126,6 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               ),
             ),
           ),
-          
           if (_filteredItems.isNotEmpty) ...[
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1110,7 +1136,6 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
             ),
             ..._filteredItems.map((item) => _buildSearchResultItem(item, null)),
           ],
-          
           if (_manifestSearchResults.isNotEmpty) ...[
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1119,9 +1144,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ),
-            ..._manifestSearchResults.map((result) => 
-              _buildManifestSearchResult(result['manifest'], result['item'])
-            ),
+            ..._manifestSearchResults.map((result) =>
+                _buildManifestSearchResult(result['manifest'], result['item'])),
           ],
         ],
       ),
@@ -1147,7 +1171,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               Expanded(
                 child: Text(
                   item.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ),
             ],
@@ -1171,7 +1196,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     );
   }
 
-  Widget _buildManifestSearchResult(DeliveryManifest manifest, DeliveryItem item) {
+  Widget _buildManifestSearchResult(
+      DeliveryManifest manifest, DeliveryItem item) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.all(12),
@@ -1190,7 +1216,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               Expanded(
                 child: Text(
                   'بارنامه شماره ${manifest.number}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ),
             ],
@@ -1250,9 +1277,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
             onChanged: _searchItems,
           ),
         ),
-        
         _buildSmartLogs(),
-        
         if (_isSearching)
           Expanded(
             child: _buildSearchResults(),
@@ -1264,23 +1289,26 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey.shade400),
+                        Icon(Icons.inventory_2_outlined,
+                            size: 80, color: Colors.grey.shade400),
                         const SizedBox(height: 16),
                         Text(
                           'هیچ کالا یا بارنامه‌ای وجود ندارد',
-                          style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+                          style: TextStyle(
+                              fontSize: 18, color: Colors.grey.shade600),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'برای شروع، روی دکمه + کلیک کنید',
-                          style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                          style: TextStyle(
+                              fontSize: 14, color: Colors.grey.shade500),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _currentItems.isNotEmpty 
+                    itemCount: _currentItems.isNotEmpty
                         ? _currentItems.length
                         : _savedManifests.length,
                     itemBuilder: (context, index) {
@@ -1296,7 +1324,6 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                     },
                   ),
           ),
-        
         if (_currentItems.isNotEmpty && !_isSearching) _buildBottomButtons(),
       ],
     );
@@ -1322,13 +1349,16 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (item.barcode.isNotEmpty)
-              Text('بارکد: ${item.barcode}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              Text('بارکد: ${item.barcode}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
             Text('واحد: ${item.unit}', style: const TextStyle(fontSize: 13)),
-            Text('تعداد: ${item.quantity}${item.packageSize > 0 ? ' (مجموع: ${item.realQuantity})' : ''}'),
+            Text(
+                'تعداد: ${item.quantity}${item.packageSize > 0 ? ' (مجموع: ${item.realQuantity})' : ''}'),
             Text('قیمت خرید: ${_displayPrice(item.purchasePrice)}'),
             Text(
               'مجموع: ${_displayPrice(item.purchasePrice * item.realQuantity)}',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.orange),
             ),
           ],
         ),
@@ -1395,10 +1425,15 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('مجموع قیمت خرید:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('مجموع قیمت خرید:',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Text(
                   _displayPrice(_totalPurchasePrice),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange),
                 ),
               ],
             ),
@@ -1468,15 +1503,19 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('شماره بارنامه:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text('${manifest.number}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Text('شماره بارنامه:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('${manifest.number}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18)),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('تاریخ:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('تاریخ:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   Text(manifest.date),
                 ],
               ),
@@ -1484,7 +1523,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('تعداد کالاها:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('تعداد کالاها:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   Text('${manifest.items.length}'),
                 ],
               ),
@@ -1492,8 +1532,11 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('مجموع قیمت:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(_displayPrice(manifest.totalPrice), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                  const Text('مجموع قیمت:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(_displayPrice(manifest.totalPrice),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.orange)),
                 ],
               ),
             ],
@@ -1510,15 +1553,22 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.blue.shade100,
-                    child: Text('${index + 1}', style: TextStyle(color: Colors.blue.shade700)),
+                    child: Text('${index + 1}',
+                        style: TextStyle(color: Colors.blue.shade700)),
                   ),
-                  title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(item.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('تعداد: ${item.quantity}${item.packageSize > 0 ? ' (مجموع: ${item.realQuantity})' : ''}'),
+                      Text(
+                          'تعداد: ${item.quantity}${item.packageSize > 0 ? ' (مجموع: ${item.realQuantity})' : ''}'),
                       Text('قیمت: ${_displayPrice(item.purchasePrice)}'),
-                      Text('مجموع: ${_displayPrice(item.purchasePrice * item.realQuantity)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                      Text(
+                          'مجموع: ${_displayPrice(item.purchasePrice * item.realQuantity)}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange)),
                     ],
                   ),
                 ),
@@ -1546,8 +1596,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            _isViewingManifest 
-                ? 'بارنامه شماره ${_viewingManifest!.number}' 
+            _isViewingManifest
+                ? 'بارنامه شماره ${_viewingManifest!.number}'
                 : '📦 برنامه تحویل بار',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
@@ -1571,7 +1621,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               ),
             ],
           ],
-          leading: _isViewingManifest 
+          leading: _isViewingManifest
               ? IconButton(
                   icon: const Icon(Icons.arrow_back),
                   onPressed: _goBackToMain,
@@ -1588,6 +1638,93 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 }
 
+class BarcodeScannerScreen extends StatefulWidget {
+  const BarcodeScannerScreen({super.key});
+
+  @override
+  State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+}
+
+class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+  final MobileScannerController _controller = MobileScannerController();
+  bool _scanned = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleBarcode(BarcodeCapture capture) {
+    if (_scanned) return;
+
+    for (final barcode in capture.barcodes) {
+      final value = barcode.rawValue;
+
+      if (value != null && value.isNotEmpty) {
+        _scanned = true;
+        _controller.stop();
+
+        Navigator.pop(context, value);
+        return;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('اسکن بارکد'),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.flash_on),
+            onPressed: () => _controller.toggleTorch(),
+          ),
+        ],
+      ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          MobileScanner(
+            controller: _controller,
+            onDetect: _handleBarcode,
+          ),
+          Center(
+            child: Container(
+              width: 280,
+              height: 160,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white,
+                  width: 3,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 50,
+            child: Text(
+              'بارکد را داخل کادر قرار دهید',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 // ==================== مدل‌های داده ====================
 
 class DeliveryItem {
@@ -1612,26 +1749,26 @@ class DeliveryItem {
   });
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'quantity': quantity,
-    'realQuantity': realQuantity,
-    'purchasePrice': purchasePrice,
-    'barcode': barcode,
-    'date': date,
-    'unit': unit,
-    'packageSize': packageSize,
-  };
+        'name': name,
+        'quantity': quantity,
+        'realQuantity': realQuantity,
+        'purchasePrice': purchasePrice,
+        'barcode': barcode,
+        'date': date,
+        'unit': unit,
+        'packageSize': packageSize,
+      };
 
   factory DeliveryItem.fromJson(Map<String, dynamic> json) => DeliveryItem(
-    name: json['name'],
-    quantity: json['quantity'],
-    realQuantity: json['realQuantity'] ?? json['quantity'],
-    purchasePrice: json['purchasePrice'] ?? 0,
-    barcode: json['barcode'],
-    date: json['date'],
-    unit: json['unit'] ?? 'عددی',
-    packageSize: json['packageSize'] ?? 0,
-  );
+        name: json['name'],
+        quantity: json['quantity'],
+        realQuantity: json['realQuantity'] ?? json['quantity'],
+        purchasePrice: json['purchasePrice'] ?? 0,
+        barcode: json['barcode'],
+        date: json['date'],
+        unit: json['unit'] ?? 'عددی',
+        packageSize: json['packageSize'] ?? 0,
+      );
 }
 
 class DeliveryManifest {
@@ -1652,13 +1789,13 @@ class DeliveryManifest {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'number': number,
-    'date': date,
-    'items': items.map((item) => item.toJson()).toList(),
-    'totalPrice': totalPrice,
-    'createdAt': createdAt,
-  };
+        'id': id,
+        'number': number,
+        'date': date,
+        'items': items.map((item) => item.toJson()).toList(),
+        'totalPrice': totalPrice,
+        'createdAt': createdAt,
+      };
 
   factory DeliveryManifest.fromJson(Map<String, dynamic> json) {
     final itemsList = (json['items'] as List)
