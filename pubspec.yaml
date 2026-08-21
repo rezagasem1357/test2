@@ -1,5 +1,5 @@
 name: delivery_app
-description: "برنامه مدیریت تحویل بار"
+description: "برنامه مدیریت تحویل بار و ورود اطلاعات کالا"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -10,17 +10,36 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
+  # ذخیره‌سازی داده‌های محلی
   shared_preferences: ^2.2.2
-  cupertino_icons: ^1.0.6
 
-  # اسکن QR و بارکد با دوربین
-  mobile_scanner: ^7.4.0
+  # اسکن بارکد با دوربین
+  mobile_scanner: ^5.1.1
+
+  # انتخاب فایل اکسل از حافظه (برای بانک اطلاعات)
+  file_picker: ^8.0.0
+
+  # مدیریت و خواندن/نوشتن فایل‌های اکسل
+  excel: ^4.0.0
+
+  # ساخت و چاپ فایل‌های PDF
+  pdf: ^3.10.8
+  printing: ^5.12.0
+
+  # بررسی اتصال اینترنت و ارتباط با API
+  connectivity_plus: ^6.0.0
+  http: ^1.2.0
+
+  # مدیریت مسیرها و اشتراک‌گذاری فایل
+  path_provider: ^2.1.2
+  share_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^3.0.0
 
 flutter:
