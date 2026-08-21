@@ -26,8 +26,9 @@ dependencies:
   excel: ^4.0.0
 
   # ساخت و چاپ فایل‌های PDF (نسخه‌های تثبیت‌شده برای رفع ارور lStar)
-  pdf: 3.10.7
-  printing: 5.11.0
+  
+  pdf: ^3.10.8
+  printing: ^5.13.1
 
   # بررسی اتصال اینترنت و ارتباط با API
   connectivity_plus: ^6.0.0
