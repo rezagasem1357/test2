@@ -1,43 +1,58 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("dev.flutter.flutter-gradle-plugin")
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
 }
 
 android {
-    namespace = "com.example.flutter_application_3"
-
-    compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    namespace "com.example.delivery_app"
+    compileSdkVersion 34
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 
     defaultConfig {
-    applicationId = "com.example.flutter_application_3"
-
-    minSdk = 23
-    targetSdk = flutter.targetSdkVersion
-
-    versionCode = flutter.versionCode
-    versionName = flutter.versionName
-}
+        applicationId "com.example.delivery_app"
+        minSdkVersion 21
+        targetSdkVersion 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            // در صورت نیاز به تنظیمات امضای APK (Signing) می‌توانید آن را اینجا اضافه کنید
+            signingConfig signingConfigs.debug
         }
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
-    }
+flutter {
+    source '../..'
 }
 
-flutter {
-    source = "../.."
-}
+dependencies {}
