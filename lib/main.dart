@@ -27,33 +27,33 @@ class DeliveryApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'تحویل بار',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-        fontFamily: 'Vazir',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
-        ),
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          centerTitle: true,
-        ),
-      ),
-      locale: const Locale('fa'),
-      supportedLocales: const [Locale('fa')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      home: const Directionality(
-        textDirection: TextDirection.rtl,
-        child: DeliveryScreen(),
-      ),
-    );
+  title: 'تحویل بار',
+  debugShowCheckedModeBanner: false,
+  theme: ThemeData(
+    primarySwatch: Colors.blue,
+    useMaterial3: true,
+    // fontFamily: 'Vazir',  // ← حذف شود
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.blue,
+      brightness: Brightness.light,
+    ),
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+    ),
+  ),
+  locale: const Locale('fa'),
+  supportedLocales: const [Locale('fa')],
+  localizationsDelegates: const [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  home: const Directionality(
+    textDirection: TextDirection.rtl,
+    child: DeliveryScreen(),
+  ),
+);
   }
 }
 
