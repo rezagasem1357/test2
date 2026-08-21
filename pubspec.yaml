@@ -1,6 +1,7 @@
 name: delivery_app
 description: "برنامه مدیریت تحویل بار"
 publish_to: 'none'
+
 version: 1.0.0+1
 
 environment:
@@ -9,21 +10,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  # ذخیره‌سازی اطلاعات در حافظه گوشی
+
   shared_preferences: ^2.2.2
-  
-  # آیکون‌های پیش‌فرض
   cupertino_icons: ^1.0.6
-  
-  # اسکن بارکد با دوربین
-  flutter_barcode_scanner: ^2.0.0
+
+  # اسکن QR و بارکد با دوربین
+  mobile_scanner: ^7.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  
-  # ابزارهای linting و بهبود کد
+
   flutter_lints: ^3.0.0
 
 flutter:
