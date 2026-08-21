@@ -16,14 +16,14 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.flutter_application_3"
+    applicationId = "com.example.flutter_application_3"
 
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+    minSdk = 23
+    targetSdk = flutter.targetSdkVersion
 
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
+    versionCode = flutter.versionCode
+    versionName = flutter.versionName
+}
 
     buildTypes {
         release {
