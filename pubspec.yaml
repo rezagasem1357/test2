@@ -1,7 +1,6 @@
 name: delivery_app
-description: "برنامه مدیریت تحویل بار و ورود اطلاعات کالا"
+description: "برنامه مدیریت تحویل بار"
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
@@ -10,33 +9,21 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  
   flutter_localizations:
     sdk: flutter
-
-  # ذخیره‌سازی داده‌های محلی
-  shared_preferences: ^2.2.2
-
-  # اسکن بارکد با دوربین
-  mobile_scanner: ^5.1.1
-
-  # انتخاب فایل اکسل از حافظه
-  file_picker: ^8.0.0
-
-  # مدیریت و خواندن/نوشتن فایل‌های اکسل
-  excel: ^4.0.0
-
-  # ساخت و چاپ فایل‌های PDF (نسخه‌های تثبیت‌شده برای رفع ارور lStar)
   
-  pdf: ^3.10.8
-  printing: ^5.13.1
-
-  # بررسی اتصال اینترنت و ارتباط با API
+  shared_preferences: ^2.2.2
+  mobile_scanner: ^5.0.0
   connectivity_plus: ^6.0.0
-  http: ^1.2.0
-
-  # مدیریت مسیرها و اشتراک‌گذاری فایل
-  path_provider: ^2.1.2
-  share_plus: ^9.0.0
+  http: ^1.1.0
+  excel: ^4.0.0
+  pdf: ^3.10.0
+  printing: ^5.11.0
+  path_provider: ^2.1.0
+  share_plus: ^7.0.0
+  file_picker: ^6.0.0
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
@@ -45,3 +32,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # fonts:
+  #   - family: Vazir
+  #     fonts:
+  #       - asset: assets/fonts/Vazir.ttf  # اگر فونت دارید
