@@ -6,6 +6,8 @@ plugins {
 
 android {
     namespace = "com.example.delivery_app"
+    
+    // اجبار به استفاده از SDK 35 به صورت صریح
     compileSdk = 35
 
     compileOptions {
