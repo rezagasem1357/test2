@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:convert';
 
 void main() {
@@ -127,24 +127,21 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   // ==================== اسکن بارکد با دوربین ====================
 
   Future<void> _scanBarcode() async {
-    try {
-      String barcode = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', // رنگ خط اسکن
-        'انصراف', // متن دکمه انصراف
-        true, // فعال بودن فلش
-        ScanMode.BARCODE, // حالت اسکن
-      );
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BarcodeScannerScreen(),
+      ),
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      if (barcode != '-1') {
-        setState(() {
-          _barcodeController.text = barcode;
-        });
-        _showSuccessMessage('بارکد اسکن شد ✅');
-      }
-    } catch (e) {
-      _showSuccessMessage('خطا در اسکن بارکد ❌');
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        _barcodeController.text = result;
+      });
+
+      _showSuccessMessage('بارکد اسکن شد ✅');
     }
   }
 
@@ -1641,6 +1638,93 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 }
 
+class BarcodeScannerScreen extends StatefulWidget {
+  const BarcodeScannerScreen({super.key});
+
+  @override
+  State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+}
+
+class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+  final MobileScannerController _controller = MobileScannerController();
+  bool _scanned = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleBarcode(BarcodeCapture capture) {
+    if (_scanned) return;
+
+    for (final barcode in capture.barcodes) {
+      final value = barcode.rawValue;
+
+      if (value != null && value.isNotEmpty) {
+        _scanned = true;
+        _controller.stop();
+
+        Navigator.pop(context, value);
+        return;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('اسکن بارکد'),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.flash_on),
+            onPressed: () => _controller.toggleTorch(),
+          ),
+        ],
+      ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          MobileScanner(
+            controller: _controller,
+            onDetect: _handleBarcode,
+          ),
+          Center(
+            child: Container(
+              width: 280,
+              height: 160,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white,
+                  width: 3,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 50,
+            child: Text(
+              'بارکد را داخل کادر قرار دهید',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 // ==================== مدل‌های داده ====================
 
 class DeliveryItem {
