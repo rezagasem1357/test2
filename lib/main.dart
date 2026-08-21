@@ -28,12 +28,12 @@ class DeliveryApp extends StatelessWidget {
           elevation: 0,
           centerTitle: true,
         ),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
+        cardTheme: CardTheme(  // ← صحیح
+  elevation: 2,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(16),
+  ),
+),
       ),
       locale: const Locale('fa'),
       home: const Directionality(
